@@ -63,9 +63,7 @@ public class Server {
     void addMessage(String message) {
         synchronized (this) {
             messageId++;
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            String formattedDate = dateFormat.format(new Date());
-            String fullMessage = messageId + ", " + message + ", " + formattedDate + ", " + "subject";
+            String fullMessage = messageId + ", " + message;
             messages.add(fullMessage);
     
             if (messages.size() > 2) {
@@ -88,8 +86,10 @@ public class Server {
             }
         }
     }
-    
-    
+
+    public int getMessageId() {
+        return messageId;
+    }
 
     void sendMessageToUser(String message, String userName) {
         synchronized (this) {
@@ -120,6 +120,7 @@ class UserThread extends Thread {
             writer = new PrintWriter(socket.getOutputStream(), true);
 
             String message;
+            String subject;
             // Ask for user name
             do {
                 writer.println("Enter username: ");
@@ -151,14 +152,19 @@ class UserThread extends Thread {
 
             // Accept messages from this client and broadcast to others in the group
             while (true) {
+                int messageId = server.getMessageId();
+                writer.println("Input the subject: ");
+                subject = reader.readLine();
+                //enter subject line here
+                writer.println("Input your message: ");
                 message = reader.readLine();
-                if (message == null || message.equals("/quit")) {
+                if (message == null || message.equals("/quit") || subject.equals("/quit")) {
                     break;
                 }
 
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String formattedDate = dateFormat.format(new Date());
-            String fullMessage = message + ", " + formattedDate + ", " + "subject";
+            String fullMessage = messageId + ", "  + message + ", " + formattedDate + ", " + subject;
 
             server.addMessage(userName + ": " + fullMessage);
             server.broadcast(userName + ": " + fullMessage);
